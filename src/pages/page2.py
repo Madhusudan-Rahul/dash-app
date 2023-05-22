@@ -13,6 +13,8 @@ from urllib.parse import quote
 import plotly.express as px
 import os
 from dotenv import load_dotenv
+import plotly.graph_objects as go
+
 load_dotenv()
 '''
 DASH AND MAKE THIS PAGE AS PAGE 2
@@ -71,12 +73,50 @@ def display_rain_graph():
     if not new_unique_rain_day.empty:
         new_unique_rain_day.columns = [
             'Rain storm last end at', 'Rainfall (mm)']
+    start_date = "2023/01/01"
+    end_date = "2023/12/31"
+    dates = pd.date_range(start_date, end_date, freq='D')
+    df = pd.DataFrame({'Rain storm last end at': dates})
+    df['Rainfall (mm)'] = 0
+    data = new_unique_rain_day.to_dict(orient='dict')
+    df['Month'] = df['Rain storm last end at'].dt.month
 
-    fig = px.bar(new_unique_rain_day, x='Rain storm last end at',
-                 y='Rainfall (mm)', template="plotly_dark")
-    fig.update_layout(title_text='Total Rainfall (mm)',
-                      title_x=0.5, xaxis_title="Date")
-    time.sleep(2)
+    rainfall_data = {}
+
+    for key, value in data['Rain storm last end at'].items():
+        date = value.strftime('%Y/%m/%d')
+        rainfall = data['Rainfall (mm)'][key]
+        rainfall_data[date] = rainfall
+
+    for date, rainfall in rainfall_data.items():
+        df.loc[df['Rain storm last end at'] ==
+               pd.to_datetime(date), 'Rainfall (mm)'] = rainfall
+
+    df = df.reset_index(drop=True)
+    grouped = df.groupby('Month')['Rainfall (mm)'].apply(list)
+    date_ls = []
+    rainfall_data = [grouped[month] for month in grouped.index]
+    for i in range(1, 32, 1):
+        date_ls.append(i)
+
+    fig = go.Figure(data=go.Heatmap(
+        z=[grouped[month] for month in grouped.index],
+        x=date_ls,
+        y=['January', 'February', 'March', 'April', 'May', 'June', 'July',
+           'August', 'September', 'October', 'November', 'December'],
+        hoverongaps=False,
+        hovertemplate='Date: %{x}<br>Month: %{y}<br>Rainfall(mm): %{z}<extra></extra>',
+        colorscale='sunset',
+        texttemplate="%{z}",
+    ))
+    fig.update_layout(
+        legend_title="Rainfall(mm)",
+        yaxis_title="Month",
+        xaxis_title="Day",
+        template="plotly_dark",
+        title_x=0.5,
+        height=600,
+    )
     return fig
 
 

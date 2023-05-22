@@ -1462,7 +1462,7 @@ def barometer_graph(n):
                 style={'color': 'green', 'position': 'absolute'},
                 width=30,
             )
-            status = f"Rising by {float((df_currentdata['bar_trend']).iloc[-1:])}hPa"
+            status = f"Rising by {float((df_currentdata['bar_trend']).iloc[-1])}hPa"
             trend_style = {'textAlign': 'Center',
                            'margin': '0em', 'color': 'green'}
         return value, f"Current: {value}hPa", new_arrow, status, trend_style
